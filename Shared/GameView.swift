@@ -57,8 +57,8 @@ struct GameView: View {
             Spacer()
 
             ScorePill(title: "Score", value: model.score, palette: palette)
-            ScorePill(title: "Best", value: model.bestScore, palette: palette)
             ScorePill(title: "Highest", value: model.highestTile, palette: palette)
+            BestPill(bestScore: model.bestScore, bestTile: model.bestHighestTile, palette: palette)
         }
     }
 
@@ -360,6 +360,34 @@ private struct ScorePill: View {
         .frame(minWidth: 74)
         .padding(.horizontal, 10)
         .padding(.vertical, 8)
+        .background(palette.scoreBackground, in: RoundedRectangle(cornerRadius: 8))
+    }
+}
+
+private struct BestPill: View {
+    let bestScore: Int
+    let bestTile: Int
+    let palette: GamePalette
+
+    var body: some View {
+        VStack(spacing: 2) {
+            Text("BEST")
+                .font(.caption2.weight(.bold))
+                .foregroundStyle(palette.lightText.opacity(0.78))
+
+            Text("\(bestScore)")
+                .font(.headline.weight(.black))
+                .foregroundStyle(palette.lightText)
+                .monospacedDigit()
+
+            Text("Tile: \(bestTile)")
+                .font(.system(size: 9).weight(.bold))
+                .foregroundStyle(palette.lightText.opacity(0.7))
+                .monospacedDigit()
+        }
+        .frame(minWidth: 74)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
         .background(palette.scoreBackground, in: RoundedRectangle(cornerRadius: 8))
     }
 }

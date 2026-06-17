@@ -27,7 +27,7 @@ struct GameTile: Identifiable, Equatable {
 
 @MainActor
 final class GameModel: ObservableObject {
-    static let appVersion = "2.2.0"
+    static let appVersion = "2.3.0"
     static let minimumBoardSide = 3
     static let maximumBoardSide = 1024
     static let minimumAutoplaySpeed = 1.0
@@ -44,6 +44,7 @@ final class GameModel: ObservableObject {
     @Published private(set) var isAutoplaying: Bool
     @Published private(set) var autoplaySpeed: Double
     @Published private(set) var highestTile: Int
+    @Published private(set) var bestHighestTile: Int
     @Published private(set) var gameHistory: [GameRecord]
     @Published private(set) var moveCount: Int
 
@@ -52,6 +53,7 @@ final class GameModel: ObservableObject {
     private var moveTask: Task<Void, Never>?
     private var autoplayTask: Task<Void, Never>?
     private let bestScoreKey = "Game1.BestScore"
+    private let highestKey = "Game1.HighestTile"
     private let slideDuration: UInt64 = 170_000_000
     private let popDuration: UInt64 = 140_000_000
 
@@ -59,6 +61,7 @@ final class GameModel: ObservableObject {
         self.tiles = []
         self.score = 0
         self.bestScore = UserDefaults.standard.integer(forKey: bestScoreKey)
+        self.bestHighestTile = UserDefaults.standard.integer(forKey: highestKey)
         self.hasWon = false
         self.isGameOver = false
         self.boardWidth = 4
@@ -202,6 +205,10 @@ final class GameModel: ObservableObject {
         let maxValue = board.flatMap { $0 }.max() ?? 0
         if maxValue > highestTile {
             highestTile = maxValue
+            if highestTile > bestHighestTile {
+                bestHighestTile = highestTile
+                UserDefaults.standard.set(bestHighestTile, forKey: highestKey)
+            }
         }
 
         if board.flatMap({ $0 }).contains(2048), !hasAcknowledgedWin {
