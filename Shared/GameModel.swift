@@ -27,7 +27,7 @@ struct GameTile: Identifiable, Equatable {
 
 @MainActor
 final class GameModel: ObservableObject {
-    static let appVersion = "2.0.0"
+    static let appVersion = "2.1.0"
     static let minimumBoardSide = 3
     static let maximumBoardSide = 1024
     static let minimumAutoplaySpeed = 1.0
