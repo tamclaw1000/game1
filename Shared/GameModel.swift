@@ -27,11 +27,11 @@ struct GameTile: Identifiable, Equatable {
 
 @MainActor
 final class GameModel: ObservableObject {
-    static let appVersion = "1.3.0"
+    static let appVersion = "2.0.0"
     static let minimumBoardSide = 3
     static let maximumBoardSide = 1024
     static let minimumAutoplaySpeed = 1.0
-    static let maximumAutoplaySpeed = 10.0
+    static let maximumAutoplaySpeed = 1000.0
 
     @Published private(set) var tiles: [GameTile]
     @Published private(set) var score: Int
@@ -136,32 +136,39 @@ final class GameModel: ObservableObject {
             UserDefaults.standard.set(bestScore, forKey: bestScoreKey)
         }
 
-        withAnimation(.easeOut(duration: Double(slideDuration) / 1_000_000_000)) {
+        if isAutoplaying {
+            // Skip animations during autoplay — apply the move instantly
             tiles = plan.slidingTiles
-        }
-
-        let slideDuration = self.slideDuration
-        let popDuration = self.popDuration
-        moveTask?.cancel()
-        moveTask = Task { [weak self, plan, slideDuration, popDuration] in
-            do {
-                try await Task.sleep(nanoseconds: slideDuration)
-            } catch {
-                return
+            finishMove(plan)
+            clearTileHighlights()
+        } else {
+            withAnimation(.easeOut(duration: Double(slideDuration) / 1_000_000_000)) {
+                tiles = plan.slidingTiles
             }
 
-            await MainActor.run {
-                self?.finishMove(plan)
-            }
+            let slideDuration = self.slideDuration
+            let popDuration = self.popDuration
+            moveTask?.cancel()
+            moveTask = Task { [weak self, plan, slideDuration, popDuration] in
+                do {
+                    try await Task.sleep(nanoseconds: slideDuration)
+                } catch {
+                    return
+                }
 
-            do {
-                try await Task.sleep(nanoseconds: popDuration)
-            } catch {
-                return
-            }
+                await MainActor.run {
+                    self?.finishMove(plan)
+                }
 
-            await MainActor.run {
-                self?.clearTileHighlights()
+                do {
+                    try await Task.sleep(nanoseconds: popDuration)
+                } catch {
+                    return
+                }
+
+                await MainActor.run {
+                    self?.clearTileHighlights()
+                }
             }
         }
     }
@@ -515,7 +522,7 @@ final class GameModel: ObservableObject {
     private var autoplayDelay: UInt64 {
         let normalized = (autoplaySpeed - Self.minimumAutoplaySpeed) / (Self.maximumAutoplaySpeed - Self.minimumAutoplaySpeed)
         let maxDelay = 700_000_000.0
-        let minDelay = 90_000_000.0
+        let minDelay = 1_000_000.0  // 1ms minimum — essentially instant
         return UInt64(maxDelay - normalized * (maxDelay - minDelay))
     }
 }
