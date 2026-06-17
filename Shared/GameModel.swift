@@ -43,6 +43,7 @@ final class GameModel: ObservableObject {
     @Published private(set) var wrapsAround: Bool
     @Published private(set) var isAutoplaying: Bool
     @Published private(set) var autoplaySpeed: Double
+    @Published private(set) var highestTile: Int
 
     private var hasAcknowledgedWin = false
     private var isMoving = false
@@ -63,6 +64,7 @@ final class GameModel: ObservableObject {
         self.wrapsAround = false
         self.isAutoplaying = false
         self.autoplaySpeed = 5.0
+        self.highestTile = 0
         startNewGame()
     }
 
@@ -190,6 +192,11 @@ final class GameModel: ObservableObject {
         }
 
         let board = boardMatrix(from: resolvedTiles)
+        let maxValue = board.flatMap { $0 }.max() ?? 0
+        if maxValue > highestTile {
+            highestTile = maxValue
+        }
+
         if board.flatMap({ $0 }).contains(2048), !hasAcknowledgedWin {
             if isAutoplaying {
                 hasAcknowledgedWin = true

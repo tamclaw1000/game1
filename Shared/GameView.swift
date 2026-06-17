@@ -54,6 +54,7 @@ struct GameView: View {
 
             ScorePill(title: "Score", value: model.score, palette: palette)
             ScorePill(title: "Best", value: model.bestScore, palette: palette)
+            ScorePill(title: "Highest", value: model.highestTile, palette: palette)
         }
     }
 
@@ -334,9 +335,13 @@ private struct TileView: View {
         case 0..<100:
             return 34
         case 100..<1000:
-            return 30
+            return 28
+        case 1000..<10000:
+            return 20
+        case 10000..<100000:
+            return 16
         default:
-            return 24
+            return 12
         }
     }
 }
