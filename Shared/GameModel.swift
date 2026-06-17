@@ -27,7 +27,7 @@ struct GameTile: Identifiable, Equatable {
 
 @MainActor
 final class GameModel: ObservableObject {
-    static let appVersion = "2.4.0"
+    static let appVersion = "2.5.0"
     static let minimumBoardSide = 3
     static let maximumBoardSide = 1024
     static let minimumAutoplaySpeed = 1.0
@@ -103,9 +103,62 @@ final class GameModel: ObservableObject {
             return
         }
 
+        let oldWidth = boardWidth
+        let oldHeight = boardHeight
         boardWidth = nextWidth
         boardHeight = nextHeight
-        startNewGame()
+
+        // When width changes, shift tiles right (grow left) or clip left (shrink).
+        // When height changes, grow down or clip bottom.
+        let colOffset = nextWidth - oldWidth  // positive = shift right
+        let rowOffset = nextHeight - oldHeight // positive = shift down
+
+        var newTiles: [GameTile] = []
+        for tile in tiles {
+            let newRow = tile.row
+            var newCol = tile.column
+
+            if rowOffset > 0 {
+                // Growing down — rows stay where they are, new rows below
+                // No shift needed for existing rows
+            } else if rowOffset < 0 {
+                // Shrinking — remove bottom rows (highest row numbers)
+                // Negative offset: e.g. old=6, new=4, offset=-2, keep rows 0..3
+                if tile.row >= nextHeight {
+                    continue // tile is on a clipped row
+                }
+                // No column shift
+            }
+
+            if colOffset > 0 {
+                // Growing left — shift tiles right by colOffset
+                newCol = tile.column + colOffset
+            } else if colOffset < 0 {
+                // Shrinking — remove left columns
+                if tile.column < -colOffset {
+                    continue // tile is on a clipped left column
+                }
+                newCol = tile.column + colOffset // shift left
+            }
+
+            var moved = tile
+            moved.row = newRow
+            moved.column = newCol
+            newTiles.append(moved)
+        }
+
+        tiles = newTiles
+
+        // Recalculate win and game-over state after reshape
+        let board = boardMatrix(from: tiles)
+        if board.flatMap({ $0 }).contains(2048), !hasAcknowledgedWin {
+            if isAutoplaying {
+                hasAcknowledgedWin = true
+            } else {
+                hasWon = true
+            }
+        }
+        isGameOver = !canMove(in: board)
     }
 
     func setWrapsAround(_ enabled: Bool) {
