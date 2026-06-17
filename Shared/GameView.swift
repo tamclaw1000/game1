@@ -350,11 +350,11 @@ private struct ScorePill: View {
         VStack(spacing: 2) {
             Text(title.uppercased())
                 .font(.caption2.weight(.bold))
-                .foregroundStyle(palette.lightText.opacity(0.78))
+                .foregroundStyle(palette.scoreLabelText)
 
             Text("\(value)")
                 .font(.headline.weight(.black))
-                .foregroundStyle(palette.lightText)
+                .foregroundStyle(palette.scoreText)
                 .monospacedDigit()
         }
         .frame(minWidth: 74)
@@ -373,16 +373,16 @@ private struct BestPill: View {
         VStack(spacing: 2) {
             Text("BEST")
                 .font(.caption2.weight(.bold))
-                .foregroundStyle(palette.lightText.opacity(0.78))
+                .foregroundStyle(palette.scoreLabelText)
 
             Text("\(bestScore)")
                 .font(.headline.weight(.black))
-                .foregroundStyle(palette.lightText)
+                .foregroundStyle(palette.scoreText)
                 .monospacedDigit()
 
             Text("Tile: \(bestTile)")
                 .font(.system(size: 9).weight(.bold))
-                .foregroundStyle(palette.lightText.opacity(0.7))
+                .foregroundStyle(palette.scoreLabelText)
                 .monospacedDigit()
         }
         .frame(minWidth: 74)
@@ -396,242 +396,336 @@ private enum GamePalette: String, CaseIterable, Identifiable {
     case classic
     case ocean
     case highContrast
+    case candy
+    case forest
+    case noir
+    case sunset
+    case mint
 
     var id: Self { self }
 
     var name: String {
         switch self {
-        case .classic:
-            return "Classic"
-        case .ocean:
-            return "Ocean"
-        case .highContrast:
-            return "Contrast"
+        case .classic:      return "Classic"
+        case .ocean:        return "Ocean"
+        case .highContrast: return "Contrast"
+        case .candy:        return "Candy"
+        case .forest:       return "Forest"
+        case .noir:         return "Noir"
+        case .sunset:       return "Sunset"
+        case .mint:         return "Mint"
         }
     }
 
+    // MARK: - Backgrounds
+
     var gameBackground: Color {
         switch self {
-        case .classic:
-            return Color(red: 0.96, green: 0.94, blue: 0.88)
-        case .ocean:
-            return Color(red: 0.91, green: 0.97, blue: 0.97)
-        case .highContrast:
-            return Color(red: 0.08, green: 0.09, blue: 0.10)
+        case .classic:      return Color(red: 0.96, green: 0.94, blue: 0.88)
+        case .ocean:        return Color(red: 0.91, green: 0.97, blue: 0.97)
+        case .highContrast: return Color(red: 0.08, green: 0.09, blue: 0.10)
+        case .candy:        return Color(red: 0.97, green: 0.94, blue: 0.97)
+        case .forest:       return Color(red: 0.93, green: 0.96, blue: 0.91)
+        case .noir:         return Color(red: 0.07, green: 0.07, blue: 0.08)
+        case .sunset:       return Color(red: 0.96, green: 0.92, blue: 0.90)
+        case .mint:         return Color(red: 0.89, green: 0.96, blue: 0.94)
         }
     }
 
     var boardBackground: Color {
         switch self {
-        case .classic:
-            return Color(red: 0.62, green: 0.55, blue: 0.48)
-        case .ocean:
-            return Color(red: 0.16, green: 0.42, blue: 0.50)
-        case .highContrast:
-            return Color(red: 0.22, green: 0.24, blue: 0.27)
+        case .classic:      return Color(red: 0.62, green: 0.55, blue: 0.48)
+        case .ocean:        return Color(red: 0.16, green: 0.42, blue: 0.50)
+        case .highContrast: return Color(red: 0.22, green: 0.24, blue: 0.27)
+        case .candy:        return Color(red: 0.56, green: 0.29, blue: 0.48)
+        case .forest:       return Color(red: 0.32, green: 0.50, blue: 0.28)
+        case .noir:         return Color(red: 0.14, green: 0.14, blue: 0.14)
+        case .sunset:       return Color(red: 0.65, green: 0.35, blue: 0.30)
+        case .mint:         return Color(red: 0.20, green: 0.60, blue: 0.52)
         }
     }
 
     var emptyTile: Color {
         switch self {
-        case .classic:
-            return Color(red: 0.74, green: 0.68, blue: 0.60)
-        case .ocean:
-            return Color(red: 0.70, green: 0.85, blue: 0.86)
-        case .highContrast:
-            return Color(red: 0.36, green: 0.38, blue: 0.42)
+        case .classic:      return Color(red: 0.74, green: 0.68, blue: 0.60)
+        case .ocean:        return Color(red: 0.70, green: 0.85, blue: 0.86)
+        case .highContrast: return Color(red: 0.36, green: 0.38, blue: 0.42)
+        case .candy:        return Color(red: 0.68, green: 0.49, blue: 0.60)
+        case .forest:       return Color(red: 0.52, green: 0.66, blue: 0.42)
+        case .noir:         return Color(red: 0.26, green: 0.26, blue: 0.27)
+        case .sunset:       return Color(red: 0.77, green: 0.53, blue: 0.45)
+        case .mint:         return Color(red: 0.42, green: 0.72, blue: 0.65)
         }
     }
 
+    // MARK: - Score & Control backgrounds
+
+    /// Background for score pills — always dark enough for white text.
     var scoreBackground: Color {
         switch self {
-        case .classic:
-            return Color(red: 0.49, green: 0.43, blue: 0.37)
-        case .ocean:
-            return Color(red: 0.05, green: 0.27, blue: 0.34)
-        case .highContrast:
-            return Color(red: 0.01, green: 0.01, blue: 0.01)
+        case .classic:      return Color(red: 0.49, green: 0.43, blue: 0.37)
+        case .ocean:        return Color(red: 0.05, green: 0.27, blue: 0.34)
+        case .highContrast: return Color(red: 0.28, green: 0.30, blue: 0.34)
+        case .candy:        return Color(red: 0.44, green: 0.18, blue: 0.38)
+        case .forest:       return Color(red: 0.22, green: 0.40, blue: 0.18)
+        case .noir:         return Color(red: 0.01, green: 0.01, blue: 0.01)
+        case .sunset:       return Color(red: 0.54, green: 0.25, blue: 0.20)
+        case .mint:         return Color(red: 0.12, green: 0.46, blue: 0.40)
         }
+    }
+
+    /// Text on scoreBackground — always white for readability.
+    var scoreText: Color {
+        return Color.white
+    }
+
+    /// Muted label text on scoreBackground.
+    var scoreLabelText: Color {
+        return Color.white.opacity(0.75)
     }
 
     var controlsBackground: Color {
         switch self {
-        case .classic:
-            return Color(red: 0.88, green: 0.84, blue: 0.75)
-        case .ocean:
-            return Color(red: 0.72, green: 0.87, blue: 0.88)
-        case .highContrast:
-            return Color(red: 0.20, green: 0.22, blue: 0.25)
+        case .classic:      return Color(red: 0.88, green: 0.84, blue: 0.75)
+        case .ocean:        return Color(red: 0.72, green: 0.87, blue: 0.88)
+        case .highContrast: return Color(red: 0.20, green: 0.22, blue: 0.25)
+        case .candy:        return Color(red: 0.84, green: 0.74, blue: 0.84)
+        case .forest:       return Color(red: 0.80, green: 0.86, blue: 0.76)
+        case .noir:         return Color(red: 0.16, green: 0.16, blue: 0.18)
+        case .sunset:       return Color(red: 0.86, green: 0.74, blue: 0.70)
+        case .mint:         return Color(red: 0.74, green: 0.90, blue: 0.86)
         }
     }
 
     var unselectedControlBackground: Color {
         switch self {
-        case .classic:
-            return Color(red: 0.96, green: 0.93, blue: 0.86)
-        case .ocean:
-            return Color(red: 0.89, green: 0.97, blue: 0.97)
-        case .highContrast:
-            return Color(red: 0.34, green: 0.36, blue: 0.40)
+        case .classic:      return Color(red: 0.96, green: 0.93, blue: 0.86)
+        case .ocean:        return Color(red: 0.89, green: 0.97, blue: 0.97)
+        case .highContrast: return Color(red: 0.34, green: 0.36, blue: 0.40)
+        case .candy:        return Color(red: 0.92, green: 0.85, blue: 0.92)
+        case .forest:       return Color(red: 0.89, green: 0.93, blue: 0.86)
+        case .noir:         return Color(red: 0.28, green: 0.28, blue: 0.30)
+        case .sunset:       return Color(red: 0.93, green: 0.85, blue: 0.82)
+        case .mint:         return Color(red: 0.83, green: 0.93, blue: 0.90)
+        }
+    }
+
+    // MARK: - Text
+
+    /// Primary text on light backgrounds (main label, control labels).
+    var primaryText: Color {
+        switch self {
+        case .classic:      return Color(red: 0.42, green: 0.36, blue: 0.30)
+        case .ocean:        return Color(red: 0.04, green: 0.24, blue: 0.31)
+        case .highContrast: return Color.white
+        case .candy:        return Color(red: 0.35, green: 0.12, blue: 0.28)
+        case .forest:       return Color(red: 0.18, green: 0.32, blue: 0.12)
+        case .noir:         return Color(red: 0.80, green: 0.80, blue: 0.82)
+        case .sunset:       return Color(red: 0.44, green: 0.18, blue: 0.14)
+        case .mint:         return Color(red: 0.08, green: 0.35, blue: 0.30)
+        }
+    }
+
+    /// Muted text labels (version, secondary info).
+    var secondaryText: Color {
+        switch self {
+        case .classic:      return Color(red: 0.48, green: 0.43, blue: 0.37)
+        case .ocean:        return Color(red: 0.11, green: 0.36, blue: 0.42)
+        case .highContrast: return Color(red: 0.78, green: 0.82, blue: 0.87)
+        case .candy:        return Color(red: 0.48, green: 0.30, blue: 0.44)
+        case .forest:       return Color(red: 0.35, green: 0.48, blue: 0.28)
+        case .noir:         return Color(red: 0.58, green: 0.58, blue: 0.62)
+        case .sunset:       return Color(red: 0.58, green: 0.34, blue: 0.28)
+        case .mint:         return Color(red: 0.26, green: 0.52, blue: 0.46)
+        }
+    }
+
+    /// Accent color for selected control highlight.
+    var accent: Color {
+        switch self {
+        case .classic:      return Color(red: 0.78, green: 0.40, blue: 0.22)
+        case .ocean:        return Color(red: 0.04, green: 0.48, blue: 0.58)
+        case .highContrast: return Color(red: 1.00, green: 0.86, blue: 0.12)
+        case .candy:        return Color(red: 0.86, green: 0.24, blue: 0.56)
+        case .forest:       return Color(red: 0.28, green: 0.60, blue: 0.18)
+        case .noir:         return Color(red: 0.92, green: 0.50, blue: 0.16)
+        case .sunset:       return Color(red: 0.90, green: 0.40, blue: 0.22)
+        case .mint:         return Color(red: 0.16, green: 0.70, blue: 0.58)
         }
     }
 
     var selectedControlText: Color {
-        switch self {
-        case .classic, .ocean:
-            return Color.white
-        case .highContrast:
-            return Color.black
-        }
+        return Color.white
     }
 
-    var primaryText: Color {
-        switch self {
-        case .classic:
-            return Color(red: 0.42, green: 0.36, blue: 0.30)
-        case .ocean:
-            return Color(red: 0.04, green: 0.24, blue: 0.31)
-        case .highContrast:
-            return Color.white
-        }
-    }
-
-    var secondaryText: Color {
-        switch self {
-        case .classic:
-            return Color(red: 0.48, green: 0.43, blue: 0.37)
-        case .ocean:
-            return Color(red: 0.11, green: 0.36, blue: 0.42)
-        case .highContrast:
-            return Color(red: 0.78, green: 0.82, blue: 0.87)
-        }
-    }
-
+    /// Light text on board/score backgrounds. Always high-contrast.
     var lightText: Color {
-        switch self {
-        case .classic, .ocean:
-            return Color(red: 0.98, green: 0.96, blue: 0.91)
-        case .highContrast:
-            return Color.black
-        }
+        return Color.white
     }
 
-    var accent: Color {
-        switch self {
-        case .classic:
-            return Color(red: 0.78, green: 0.40, blue: 0.22)
-        case .ocean:
-            return Color(red: 0.04, green: 0.48, blue: 0.58)
-        case .highContrast:
-            return Color(red: 1.00, green: 0.86, blue: 0.12)
-        }
-    }
+    // MARK: - Tile Colors
 
     func tileColor(for value: Int) -> Color {
         switch self {
-        case .classic:
-            return classicTileColor(for: value)
-        case .ocean:
-            return oceanTileColor(for: value)
-        case .highContrast:
-            return contrastTileColor(for: value)
+        case .classic:      return classicTileColor(for: value)
+        case .ocean:        return oceanTileColor(for: value)
+        case .highContrast: return contrastTileColor(for: value)
+        case .candy:        return candyTileColor(for: value)
+        case .forest:       return forestTileColor(for: value)
+        case .noir:         return noirTileColor(for: value)
+        case .sunset:       return sunsetTileColor(for: value)
+        case .mint:         return mintTileColor(for: value)
         }
     }
 
     func tileTextColor(for value: Int) -> Color {
         switch self {
         case .classic:
-            return value <= 4 ? primaryText : lightText
+            return value <= 4 ? primaryText : .white
         case .ocean:
-            return value <= 8 ? primaryText : lightText
+            return value <= 8 ? primaryText : .white
         case .highContrast:
-            switch value {
-            case 2...32:
-                return Color.black
-            default:
-                return Color.white
-            }
+            return value <= 32 ? .black : .white
+        case .candy:
+            return value <= 8 ? primaryText : .white
+        case .forest:
+            return value <= 8 ? primaryText : .white
+        case .noir:
+            return value <= 32 ? .black : .white
+        case .sunset:
+            return value <= 8 ? primaryText : .white
+        case .mint:
+            return value <= 8 ? primaryText : .white
         }
     }
 
+    // MARK: - Tile color maps per scheme
+
     private func classicTileColor(for value: Int) -> Color {
         switch value {
-        case 2:
-            return Color(red: 0.93, green: 0.89, blue: 0.82)
-        case 4:
-            return Color(red: 0.90, green: 0.83, blue: 0.72)
-        case 8:
-            return Color(red: 0.91, green: 0.58, blue: 0.36)
-        case 16:
-            return Color(red: 0.90, green: 0.43, blue: 0.28)
-        case 32:
-            return Color(red: 0.86, green: 0.32, blue: 0.30)
-        case 64:
-            return Color(red: 0.78, green: 0.20, blue: 0.22)
-        case 128:
-            return Color(red: 0.85, green: 0.70, blue: 0.34)
-        case 256:
-            return Color(red: 0.77, green: 0.61, blue: 0.25)
-        case 512:
-            return Color(red: 0.47, green: 0.66, blue: 0.43)
-        case 1024:
-            return Color(red: 0.25, green: 0.56, blue: 0.55)
-        default:
-            return Color(red: 0.21, green: 0.41, blue: 0.57)
+        case 2:     return Color(red: 0.93, green: 0.89, blue: 0.82)
+        case 4:     return Color(red: 0.90, green: 0.83, blue: 0.72)
+        case 8:     return Color(red: 0.91, green: 0.58, blue: 0.36)
+        case 16:    return Color(red: 0.90, green: 0.43, blue: 0.28)
+        case 32:    return Color(red: 0.86, green: 0.32, blue: 0.30)
+        case 64:    return Color(red: 0.78, green: 0.20, blue: 0.22)
+        case 128:   return Color(red: 0.85, green: 0.70, blue: 0.34)
+        case 256:   return Color(red: 0.77, green: 0.61, blue: 0.25)
+        case 512:   return Color(red: 0.47, green: 0.66, blue: 0.43)
+        case 1024:  return Color(red: 0.25, green: 0.56, blue: 0.55)
+        default:    return Color(red: 0.21, green: 0.41, blue: 0.57)
         }
     }
 
     private func oceanTileColor(for value: Int) -> Color {
         switch value {
-        case 2:
-            return Color(red: 0.77, green: 0.92, blue: 0.91)
-        case 4:
-            return Color(red: 0.61, green: 0.85, blue: 0.84)
-        case 8:
-            return Color(red: 0.34, green: 0.68, blue: 0.73)
-        case 16:
-            return Color(red: 0.19, green: 0.55, blue: 0.64)
-        case 32:
-            return Color(red: 0.11, green: 0.43, blue: 0.56)
-        case 64:
-            return Color(red: 0.07, green: 0.33, blue: 0.48)
-        case 128:
-            return Color(red: 0.31, green: 0.57, blue: 0.42)
-        case 256:
-            return Color(red: 0.46, green: 0.64, blue: 0.31)
-        case 512:
-            return Color(red: 0.63, green: 0.56, blue: 0.28)
-        case 1024:
-            return Color(red: 0.72, green: 0.43, blue: 0.28)
-        default:
-            return Color(red: 0.78, green: 0.28, blue: 0.28)
+        case 2:     return Color(red: 0.77, green: 0.92, blue: 0.91)
+        case 4:     return Color(red: 0.61, green: 0.85, blue: 0.84)
+        case 8:     return Color(red: 0.34, green: 0.68, blue: 0.73)
+        case 16:    return Color(red: 0.19, green: 0.55, blue: 0.64)
+        case 32:    return Color(red: 0.11, green: 0.43, blue: 0.56)
+        case 64:    return Color(red: 0.07, green: 0.33, blue: 0.48)
+        case 128:   return Color(red: 0.31, green: 0.57, blue: 0.42)
+        case 256:   return Color(red: 0.46, green: 0.64, blue: 0.31)
+        case 512:   return Color(red: 0.63, green: 0.56, blue: 0.28)
+        case 1024:  return Color(red: 0.72, green: 0.43, blue: 0.28)
+        default:    return Color(red: 0.78, green: 0.28, blue: 0.28)
         }
     }
 
     private func contrastTileColor(for value: Int) -> Color {
         switch value {
-        case 2:
-            return Color(red: 0.98, green: 0.98, blue: 0.98)
-        case 4:
-            return Color(red: 0.86, green: 0.91, blue: 1.00)
-        case 8:
-            return Color(red: 0.56, green: 0.83, blue: 1.00)
-        case 16:
-            return Color(red: 0.22, green: 0.72, blue: 1.00)
-        case 32:
-            return Color(red: 0.15, green: 0.94, blue: 0.67)
-        case 64:
-            return Color(red: 0.49, green: 1.00, blue: 0.39)
-        case 128:
-            return Color(red: 1.00, green: 0.86, blue: 0.12)
-        case 256:
-            return Color(red: 1.00, green: 0.65, blue: 0.16)
-        case 512:
-            return Color(red: 1.00, green: 0.41, blue: 0.24)
-        case 1024:
-            return Color(red: 1.00, green: 0.31, blue: 0.55)
-        default:
-            return Color(red: 0.86, green: 0.45, blue: 1.00)
+        case 2:     return Color(red: 0.98, green: 0.98, blue: 0.98)
+        case 4:     return Color(red: 0.86, green: 0.91, blue: 1.00)
+        case 8:     return Color(red: 0.56, green: 0.83, blue: 1.00)
+        case 16:    return Color(red: 0.22, green: 0.72, blue: 1.00)
+        case 32:    return Color(red: 0.15, green: 0.94, blue: 0.67)
+        case 64:    return Color(red: 0.49, green: 1.00, blue: 0.39)
+        case 128:   return Color(red: 1.00, green: 0.86, blue: 0.12)
+        case 256:   return Color(red: 1.00, green: 0.65, blue: 0.16)
+        case 512:   return Color(red: 1.00, green: 0.41, blue: 0.24)
+        case 1024:  return Color(red: 1.00, green: 0.31, blue: 0.55)
+        default:    return Color(red: 0.86, green: 0.45, blue: 1.00)
+        }
+    }
+
+    private func candyTileColor(for value: Int) -> Color {
+        switch value {
+        case 2:     return Color(red: 1.00, green: 0.92, blue: 0.96)
+        case 4:     return Color(red: 1.00, green: 0.80, blue: 0.90)
+        case 8:     return Color(red: 0.96, green: 0.58, blue: 0.76)
+        case 16:    return Color(red: 0.90, green: 0.38, blue: 0.64)
+        case 32:    return Color(red: 0.84, green: 0.24, blue: 0.52)
+        case 64:    return Color(red: 0.90, green: 0.44, blue: 0.44)
+        case 128:   return Color(red: 0.99, green: 0.70, blue: 0.60)
+        case 256:   return Color(red: 0.94, green: 0.60, blue: 0.32)
+        case 512:   return Color(red: 0.68, green: 0.78, blue: 0.91)
+        case 1024:  return Color(red: 0.45, green: 0.62, blue: 0.80)
+        default:    return Color(red: 0.40, green: 0.40, blue: 0.60)
+        }
+    }
+
+    private func forestTileColor(for value: Int) -> Color {
+        switch value {
+        case 2:     return Color(red: 0.94, green: 0.96, blue: 0.90)
+        case 4:     return Color(red: 0.86, green: 0.93, blue: 0.82)
+        case 8:     return Color(red: 0.56, green: 0.78, blue: 0.44)
+        case 16:    return Color(red: 0.38, green: 0.68, blue: 0.28)
+        case 32:    return Color(red: 0.26, green: 0.56, blue: 0.18)
+        case 64:    return Color(red: 0.58, green: 0.53, blue: 0.18)
+        case 128:   return Color(red: 0.72, green: 0.62, blue: 0.20)
+        case 256:   return Color(red: 0.60, green: 0.46, blue: 0.14)
+        case 512:   return Color(red: 0.28, green: 0.42, blue: 0.46)
+        case 1024:  return Color(red: 0.18, green: 0.34, blue: 0.38)
+        default:    return Color(red: 0.26, green: 0.20, blue: 0.14)
+        }
+    }
+
+    private func noirTileColor(for value: Int) -> Color {
+        switch value {
+        case 2:     return Color(red: 0.22, green: 0.22, blue: 0.24)
+        case 4:     return Color(red: 0.30, green: 0.30, blue: 0.32)
+        case 8:     return Color(red: 0.40, green: 0.35, blue: 0.25)
+        case 16:    return Color(red: 0.50, green: 0.30, blue: 0.20)
+        case 32:    return Color(red: 0.55, green: 0.25, blue: 0.22)
+        case 64:    return Color(red: 0.40, green: 0.40, blue: 0.60)
+        case 128:   return Color(red: 0.55, green: 0.45, blue: 0.20)
+        case 256:   return Color(red: 0.50, green: 0.50, blue: 0.18)
+        case 512:   return Color(red: 0.28, green: 0.50, blue: 0.55)
+        case 1024:  return Color(red: 0.18, green: 0.40, blue: 0.45)
+        default:    return Color(red: 0.28, green: 0.18, blue: 0.40)
+        }
+    }
+
+    private func sunsetTileColor(for value: Int) -> Color {
+        switch value {
+        case 2:     return Color(red: 1.00, green: 0.95, blue: 0.90)
+        case 4:     return Color(red: 1.00, green: 0.88, blue: 0.78)
+        case 8:     return Color(red: 0.98, green: 0.70, blue: 0.50)
+        case 16:    return Color(red: 0.95, green: 0.52, blue: 0.32)
+        case 32:    return Color(red: 0.90, green: 0.38, blue: 0.22)
+        case 64:    return Color(red: 0.82, green: 0.28, blue: 0.18)
+        case 128:   return Color(red: 0.80, green: 0.60, blue: 0.30)
+        case 256:   return Color(red: 0.72, green: 0.52, blue: 0.22)
+        case 512:   return Color(red: 0.44, green: 0.52, blue: 0.66)
+        case 1024:  return Color(red: 0.28, green: 0.42, blue: 0.58)
+        default:    return Color(red: 0.35, green: 0.25, blue: 0.45)
+        }
+    }
+
+    private func mintTileColor(for value: Int) -> Color {
+        switch value {
+        case 2:     return Color(red: 0.90, green: 0.97, blue: 0.92)
+        case 4:     return Color(red: 0.74, green: 0.93, blue: 0.85)
+        case 8:     return Color(red: 0.44, green: 0.84, blue: 0.72)
+        case 16:    return Color(red: 0.24, green: 0.74, blue: 0.60)
+        case 32:    return Color(red: 0.14, green: 0.62, blue: 0.50)
+        case 64:    return Color(red: 0.22, green: 0.52, blue: 0.44)
+        case 128:   return Color(red: 0.56, green: 0.74, blue: 0.38)
+        case 256:   return Color(red: 0.62, green: 0.68, blue: 0.26)
+        case 512:   return Color(red: 0.38, green: 0.56, blue: 0.48)
+        case 1024:  return Color(red: 0.26, green: 0.46, blue: 0.40)
+        default:    return Color(red: 0.18, green: 0.38, blue: 0.34)
         }
     }
 }
