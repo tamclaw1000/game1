@@ -31,7 +31,7 @@ final class GameModel: ObservableObject {
     static let minimumBoardSide = 3
     static let maximumBoardSide = 1024
     static let minimumAutoplaySpeed = 1.0
-    static let maximumAutoplaySpeed = 1000.0
+    static let maximumAutoplaySpeed = 10.0
 
     @Published private(set) var tiles: [GameTile]
     @Published private(set) var score: Int

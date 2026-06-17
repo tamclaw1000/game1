@@ -102,7 +102,7 @@ struct GameView: View {
                     .font(.subheadline.weight(.bold))
                     .foregroundStyle(palette.primaryText)
                     .monospacedDigit()
-                    .frame(width: 40, alignment: .trailing)
+                    .frame(width: 24, alignment: .trailing)
             }
 
             HStack(spacing: 12) {
