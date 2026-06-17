@@ -321,28 +321,14 @@ private struct TileView: View {
             .fill(palette.tileColor(for: tile.value))
             .overlay {
                 Text("\(tile.value)")
-                    .font(.system(size: fontSize, weight: .black, design: .rounded))
-                    .minimumScaleFactor(0.38)
+                    .font(.system(size: 40, weight: .black, design: .rounded))
+                    .minimumScaleFactor(0.05)
                     .lineLimit(1)
                     .foregroundStyle(palette.tileTextColor(for: tile.value))
-                    .padding(6)
+                    .padding(4)
             }
+            .help("\(tile.value)")
             .accessibilityLabel("\(tile.value)")
-    }
-
-    private var fontSize: CGFloat {
-        switch tile.value {
-        case 0..<100:
-            return 34
-        case 100..<1000:
-            return 28
-        case 1000..<10000:
-            return 20
-        case 10000..<100000:
-            return 16
-        default:
-            return 12
-        }
     }
 }
 
