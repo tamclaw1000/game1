@@ -3,6 +3,7 @@ import SwiftUI
 struct GameView: View {
     @StateObject private var model = GameModel()
     @State private var palette: GamePalette = .classic
+    @State private var showHistory = false
 
     var body: some View {
         ZStack {
@@ -42,6 +43,9 @@ struct GameView: View {
             }
         }
         .tint(palette.accent)
+        .sheet(isPresented: $showHistory) {
+            HistoryView(history: model.gameHistory, palette: palette)
+        }
     }
 
     private var header: some View {
@@ -65,6 +69,11 @@ struct GameView: View {
                     model.startNewGame()
                 }
                 .buttonStyle(.borderedProminent)
+
+                Button("History") {
+                    showHistory = true
+                }
+                .buttonStyle(.bordered)
 
                 Toggle("Wrap", isOn: Binding(
                     get: { model.wrapsAround },
@@ -649,3 +658,94 @@ private final class KeyCatchingView: NSView {
     }
 }
 #endif
+
+private struct HistoryView: View {
+    let history: [GameRecord]
+    let palette: GamePalette
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Text("Game History")
+                .font(.system(size: 28, weight: .black, design: .rounded))
+                .foregroundStyle(palette.primaryText)
+                .padding(.top, 20)
+                .padding(.bottom, 12)
+
+            if history.isEmpty {
+                Spacer()
+                Text("No games played yet")
+                    .font(.headline)
+                    .foregroundStyle(palette.secondaryText)
+                Spacer()
+            } else {
+                ScrollView {
+                    VStack(spacing: 8) {
+                        ForEach(history.reversed()) { record in
+                            HistoryRow(record: record, palette: palette)
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 16)
+                }
+            }
+        }
+        .frame(width: 420, height: 400)
+        .background(palette.gameBackground)
+    }
+}
+
+private struct HistoryRow: View {
+    let record: GameRecord
+    let palette: GamePalette
+
+    private var configLabel: String {
+        let board = "\(record.boardWidth)×\(record.boardHeight)"
+        let wrap = record.wrapsAround ? " wrap" : ""
+        let auto = record.wasAutoplay ? " auto" : ""
+        return board + wrap + auto
+    }
+
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(record.date, style: .time)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(palette.secondaryText)
+                Text(configLabel)
+                    .font(.caption2)
+                    .foregroundStyle(palette.secondaryText.opacity(0.7))
+            }
+
+            Spacer()
+
+            VStack(alignment: .trailing, spacing: 1) {
+                HStack(spacing: 10) {
+                    Stat(value: record.score, label: "Score", palette: palette)
+                    Stat(value: record.highestTile, label: "Tile", palette: palette)
+                    Stat(value: record.moveCount, label: "Moves", palette: palette)
+                }
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(palette.controlsBackground, in: RoundedRectangle(cornerRadius: 8))
+    }
+}
+
+private struct Stat: View {
+    let value: Int
+    let label: String
+    let palette: GamePalette
+
+    var body: some View {
+        VStack(spacing: 1) {
+            Text("\(value)")
+                .font(.callout.weight(.black))
+                .foregroundStyle(palette.primaryText)
+                .monospacedDigit()
+            Text(label)
+                .font(.system(size: 9).weight(.bold))
+                .foregroundStyle(palette.secondaryText)
+        }
+    }
+}

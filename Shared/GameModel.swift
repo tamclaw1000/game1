@@ -27,7 +27,7 @@ struct GameTile: Identifiable, Equatable {
 
 @MainActor
 final class GameModel: ObservableObject {
-    static let appVersion = "2.1.0"
+    static let appVersion = "2.2.0"
     static let minimumBoardSide = 3
     static let maximumBoardSide = 1024
     static let minimumAutoplaySpeed = 1.0
@@ -44,6 +44,8 @@ final class GameModel: ObservableObject {
     @Published private(set) var isAutoplaying: Bool
     @Published private(set) var autoplaySpeed: Double
     @Published private(set) var highestTile: Int
+    @Published private(set) var gameHistory: [GameRecord]
+    @Published private(set) var moveCount: Int
 
     private var hasAcknowledgedWin = false
     private var isMoving = false
@@ -65,6 +67,8 @@ final class GameModel: ObservableObject {
         self.isAutoplaying = false
         self.autoplaySpeed = 5.0
         self.highestTile = 0
+        self.gameHistory = []
+        self.moveCount = 0
         startNewGame()
     }
 
@@ -75,6 +79,8 @@ final class GameModel: ObservableObject {
         hasWon = false
         hasAcknowledgedWin = false
         isGameOver = false
+        highestTile = 0
+        moveCount = 0
 
         var nextTiles: [GameTile] = []
         addRandomTile(to: &nextTiles)
@@ -132,6 +138,7 @@ final class GameModel: ObservableObject {
         }
 
         isMoving = true
+        moveCount += 1
         score += plan.points
         if score > bestScore {
             bestScore = score
@@ -206,6 +213,16 @@ final class GameModel: ObservableObject {
         }
         isGameOver = !canMove(in: board)
         if isGameOver {
+            let record = GameRecord(
+                score: score,
+                highestTile: highestTile,
+                moveCount: moveCount,
+                boardWidth: boardWidth,
+                boardHeight: boardHeight,
+                wrapsAround: wrapsAround,
+                wasAutoplay: isAutoplaying
+            )
+            gameHistory.append(record)
             setAutoplaying(false)
         }
     }
@@ -565,5 +582,37 @@ private extension MoveDirection {
         case .up, .down:
             return false
         }
+    }
+}
+
+struct GameRecord: Identifiable {
+    let id: UUID
+    let date: Date
+    let score: Int
+    let highestTile: Int
+    let moveCount: Int
+    let boardWidth: Int
+    let boardHeight: Int
+    let wrapsAround: Bool
+    let wasAutoplay: Bool
+
+    init(
+        score: Int,
+        highestTile: Int,
+        moveCount: Int,
+        boardWidth: Int,
+        boardHeight: Int,
+        wrapsAround: Bool,
+        wasAutoplay: Bool
+    ) {
+        self.id = UUID()
+        self.date = Date()
+        self.score = score
+        self.highestTile = highestTile
+        self.moveCount = moveCount
+        self.boardWidth = boardWidth
+        self.boardHeight = boardHeight
+        self.wrapsAround = wrapsAround
+        self.wasAutoplay = wasAutoplay
     }
 }
