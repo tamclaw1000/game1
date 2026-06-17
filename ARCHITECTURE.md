@@ -13,6 +13,9 @@ Game1.xcodeproj
 │   └── Game1iOSApp.swift     ← iOS app entry point
 ├── macOS/
 │   └── Game1MacApp.swift     ← macOS app entry point
+├── build.sh                 ← xcodebuild wrapper
+├── run.sh                   ← build + launch wrapper
+├── ARCHITECTURE.md
 └── README.md
 ```
 
@@ -47,35 +50,40 @@ The central model — a `@MainActor` `ObservableObject` that owns all game state
 | `tiles` | `[GameTile]` | All tiles currently on the board |
 | `score` | `Int` | Current session score |
 | `bestScore` | `Int` | Persistent best score (UserDefaults) |
+| `bestHighestTile` | `Int` | Persistent best tile ever reached (UserDefaults) |
+| `highestTile` | `Int` | Highest tile in the current game |
+| `moveCount` | `Int` | Moves made in the current game |
+| `gameHistory` | `[GameRecord]` | In-memory list of completed games |
 | `hasWon` | `Bool` | True when a 2048 tile appears (before acknowledgment) |
 | `isGameOver` | `Bool` | True when no moves remain |
 | `boardWidth` / `boardHeight` | `Int` | Board dimensions (3–1024) |
 | `wrapsAround` | `Bool` | Enable wrap-around (toroidal) mode |
 | `isAutoplaying` | `Bool` | Whether AI autoplay is running |
-| `autoplaySpeed` | `Double` | Moves per second (1–10) |
+| `autoplaySpeed` | `Double` | Autoplay speed (1–10) |
 
 **Key methods:**
 
 | Method | Purpose |
 |---|---|
-| `startNewGame()` | Reset board, place 2 random tiles |
-| `move(_ direction:)` | Animate a slide in one direction |
+| `startNewGame()` | Reset board, score, move count; place 2 random tiles |
+| `move(_ direction:)` | Animate a slide in one direction (or apply instantly during autoplay) |
 | `continueAfterWin()` | Dismiss the win overlay and keep playing |
-| `updateBoardSize(width:height:)` | Resize and restart |
+| `updateBoardSize(width:height:)` | Resize grid preserving existing tiles (grow/shrink left and bottom) |
 | `setWrapsAround(_:)` | Toggle toroidal mode |
 | `setAutoplaying(_:)` | Start/stop AI autoplay |
 | `setAutoplaySpeed(_:)` | Adjust autoplay rate |
 
-**Animation pipeline (inside `move`):**
+**Animation pipeline (inside `move` — manual mode):**
 
 1. `makeMovePlan(for:)` computes tile destinations, merges, and removals (no mutation)
-2. `slidingTiles` animates via `withAnimation(.easeOut)` — tiles slide to new positions
-3. After `slideDuration` (170ms), `finishMove(_:)` applies merges (value updates + removal), adds a random tile, and fades in the new tile
+2. `withAnimation(.easeOut)` slides tiles to new positions (170ms)
+3. After `slideDuration`, `finishMove(_:)` applies merges, adds a random tile, fades it in (spring animation, ~220ms)
 4. After `popDuration` (140ms), `clearTileHighlights()` resets `isNew`/`isMerged` flags and releases `isMoving` lock
 
-**Autoplay:**
-
-A `Task` runs a loop: sleep → `performAutoplayStep()` → repeat. Each step picks the highest-scoring move via `bestAutoplayDirection()` using a greedy heuristic (merge score × 10 + tiles moved). The delay is an inverse linear ramp from 700ms (speed=1) to 90ms (speed=10).
+**Autoplay mode:**
+- During autoplay (`isAutoplaying == true`), `move(_:)` skips all animations and applies the move plan synchronously — making it run as fast as SwiftUI can re-render
+- A `Task` loop runs `performAutoplayStep()` with a configurable delay (700ms at speed 1 → 1ms at speed 10)
+- Each step picks the best move via `bestAutoplayDirection()` using a greedy heuristic (merge points × 10 + tiles moved)
 
 ### GameView (`Shared/GameView.swift`)
 
@@ -83,32 +91,62 @@ The monolithic SwiftUI view hierarchy:
 
 ```
 GameView
-├── header (title + score pills)
+├── header (title "2048" + score pills)
+│   ├── ScorePill — "SCORE" (current game score)
+│   ├── ScorePill — "HIGHEST" (highest tile this game)
+│   └── BestPill — "BEST" (best score + best tile ever, persisted)
 ├── BoardView
 │   ├── GridBackground (Canvas — efficient large-board rendering)
-│   └── TileView (per tile: rounded rect + value text)
+│   └── TileView (per tile: rounded rect + dynamically scaled value text + hover tooltip)
 ├── controls
 │   ├── New Game button
+│   ├── History button (opens Game History sheet)
 │   ├── Wrap toggle
 │   ├── Auto toggle
-│   ├── Speed slider
+│   ├── Speed slider (1–10)
 │   ├── Width / Height steppers
-│   └── Palette selector (Classic / Ocean / Contrast)
-├── keyboardHandler (macOS-only NSViewRepresentable)
+│   └── Palette selector (8 schemes: Classic, Ocean, Contrast, Candy, Forest, Noir, Sunset, Mint)
+├── keyboardHandler (macOS-only NSViewRepresentable for arrow keys)
 └── overlay (win / game-over sheet)
 ```
 
 **Palette system (`GamePalette` enum):**
 
-Three presets (`classic`, `ocean`, `highContrast`) each defining:
-- `gameBackground`, `boardBackground`, `emptyTile`, `controlsBackground`
-- `scoreBackground`, `unselectedControlBackground`
-- `selectedControlText`, `primaryText`, `secondaryText`, `lightText`, `accent`
-- `tileColor(for:)` + `tileTextColor(for:)` — value-to-color mapping per palette
+8 presets each defining a complete color system:
+
+| Property | Role |
+|---|---|
+| `gameBackground` | App/background fill |
+| `boardBackground` | Board area fill |
+| `emptyTile` | Background of empty cell slots |
+| `scoreBackground` | Background for score pills (always dark) |
+| `scoreText` | Primary value text on score pills (always white) |
+| `scoreLabelText` | Label text on score pills (white at 75%) |
+| `controlsBackground` | Controls panel fill |
+| `unselectedControlBackground` | Unselected palette button fill |
+| `primaryText` | General text on light backgrounds |
+| `secondaryText` | Muted text (version, secondary info) |
+| `accent` | Highlight/selected button color |
+| `selectedControlText` | Text on selected palette button (white) |
+| `lightText` | High-contrast text on dark surfaces (always white) |
+| `tileColor(for:)` | Value → tile background color |
+| `tileTextColor(for:)` | Value → tile text color |
 
 **Board layout (`BoardView`):**
 
-Uses `GeometryReader` to compute tile size dynamically from available space. Spacing scales with board density (`cellSpacing`). Tiles are positioned absolutely inside a `ZStack` using `.position(x:y:)`. A `.scaleEffect(1.08)` is applied to merged tiles during their pop animation.
+Uses `GeometryReader` to compute tile size dynamically from available space. Spacing scales with board density (`cellSpacing`). Tiles positioned absolutely in a `ZStack` via `.position(x:y:)`. Merged tiles get a `.scaleEffect(1.08)` pop animation.
+
+**Tile text scaling:**
+
+Every tile renders its value with `.font(.system(size: 40)).minimumScaleFactor(0.05)`. SwiftUI dynamically shrinks text to fit the tile — no manual font-size switching. The `.help()` modifier adds a native hover tooltip on macOS showing the exact number.
+
+### Game History (`Shared/GameView.swift`)
+
+- `GameRecord` struct stores: score, highest tile, move count, board dimensions, wrap mode, autoplay flag, date
+- Records are appended to `gameHistory` automatically when a game ends
+- Accessible via the "History" button in controls → opens a sheet
+
+---
 
 ## `MoveDirection` — Input Abstraction
 
@@ -161,15 +199,43 @@ LineTarget
 ├── row, column: Int              — target cell coordinates
 ├── hasMerged: Bool               — was a merge performed here?
 └── tileIDs: [UUID]               — tile IDs landing here (1 or 2)
+
+GameRecord (Identifiable)
+├── id: UUID
+├── date: Date
+├── score: Int
+├── highestTile: Int
+├── moveCount: Int
+├── boardWidth / boardHeight: Int
+├── wrapsAround: Bool
+└── wasAutoplay: Bool
 ```
 
 ---
 
 ## Persistence
 
-- **Best score** stored in `UserDefaults` under key `Game1.BestScore`
-- Updated immediately when score exceeds best
-- Loaded on `init()`, no other persistence
+| Key | Value | Updated |
+|---|---|---|
+| `Game1.BestScore` | Best ever score | When score exceeds best |
+| `Game1.HighestTile` | Best ever tile value | When a new tile exceeds previous best |
+
+Both loaded on `init()` from `UserDefaults`.
+
+---
+
+## Grid Resize Behavior
+
+`updateBoardSize(width:height:)` reshapes the board without resetting state:
+
+| Operation | Behavior |
+|---|---|
+| **Increase width** | Existing tiles shift right → new empty columns appear on the **left** |
+| **Decrease width** | Leftmost columns are removed → remaining tiles shift left |
+| **Increase height** | New empty rows added at the **bottom** |
+| **Decrease height** | Bottommost rows (and tiles on them) are removed |
+
+Score, move count, highest tile, and game state carry over. Win/game-over are recalculated after resize.
 
 ---
 
@@ -179,7 +245,11 @@ LineTarget
 |---|---|
 | Single `ObservableObject` | Simple enough to keep state in one place; avoids cross-model sync bugs |
 | Animation via `Task.sleep` + `withAnimation` | Fine-grained control over multi-phase animations (slide → merge → pop) |
-| Canvas for grid background | Efficient for large boards; avoids N individual view overhead |
+| Skip animations during autoplay | Fast-forward moves at CPU speed instead of animation-limited pace |
 | `NSViewRepresentable` for macOS keyboard | Required because SwiftUI has no native key-down capture for arrow keys |
 | `@MainActor` on model | Ensures all state mutations happen on the main actor (required for SwiftUI observation) |
 | Wrap mode as toggle | Adds strategic variety with minimal code changes to the core algorithm |
+| Dynamic font scaling (`minimumScaleFactor: 0.05`) | Guarantees any tile value is visible without manual font-size tiers |
+| `scoreText` / `scoreLabelText` as palette properties | Ensures score pills are always readable regardless of palette |
+| In-memory game history | Simple, no persistence needed for session history |
+| Grid resize preserves tiles | Avoiding game restart on board reshape enables continuous play |
